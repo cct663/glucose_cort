@@ -18,7 +18,7 @@
   # Nestlings: only from NY in 2019. acth is 3 days after b/s/d series
 
 ## Load in packages to be used for various purposes.
-  pacman::p_load(plyr, lme4, ggplot2, here, scales)
+  pacman::p_load(plyr, lme4, ggplot2, here, scales, lmerTest, sjPlot)
 
 ## Load in main data file that includes all glucose & cort measures
   d <- read.delim(here("/1_raw_data/data_glucose_cort.txt"))
@@ -605,3 +605,108 @@
     
     
 ## Breeding stage
+    
+    par(mfrow = c(1, 3))
+    
+    da_e <- subset(da2n, da2n$stage == "early_inc")
+    da_l <- subset(da2n, da2n$stage == "late_inc")
+    da_p <- subset(da2n, da2n$stage == "provision")
+    
+    plot(1, 1, type = "n", yaxt = "n", xaxt = "n", xlab = "", 
+         ylab = "Blood Glucose (mg/dl)", bty = "n",
+         xlim = c(1.5, 4.5), ylim = c(100, 350), xaxs = "i", yaxs = "i",
+         main = "Base Glucose")
+    axis(1, c(-10, 2, 3, 4, 10), c("", "Early Inc", "Late Inc", "Provision", ""))  
+    axis(2, seq(-500, 500, 50), las = 2)
+    points(rep(2, nrow(da_e)) + runif(nrow(da_e), -.1, .1), da_e$b_gluc, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    points(rep(3, nrow(da_l)) + runif(nrow(da_l), -.1, .1), da_l$b_gluc, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    points(rep(4, nrow(da_p)) + runif(nrow(da_p), -.1, .1), da_p$b_gluc, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    boxplot(da_e$b_gluc, add = TRUE, at = 2, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    boxplot(da_l$b_gluc, add = TRUE, at = 3, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    boxplot(da_p$b_gluc, add = TRUE, at = 4, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    
+    
+    da_e <- subset(da2n, da2n$stage == "early_inc")
+    da_l <- subset(da2n, da2n$stage == "late_inc")
+    da_p <- subset(da2n, da2n$stage == "provision")
+    
+    plot(1, 1, type = "n", yaxt = "n", xaxt = "n", xlab = "", 
+         ylab = "Blood Glucose (mg/dl)", bty = "n",
+         xlim = c(1.5, 4.5), ylim = c(100, 350), xaxs = "i", yaxs = "i",
+         main = "Stress Glucose")
+    axis(1, c(-10, 2, 3, 4, 10), c("", "Early Inc", "", "Provision", ""))  
+    axis(2, seq(-500, 500, 50), las = 2)
+    points(rep(2, nrow(da_e)) + runif(nrow(da_e), -.1, .1), da_e$s_gluc, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    #points(rep(3, nrow(da_l)) + runif(nrow(da_l), -.1, .1), da_l$s_gluc, pch = 16, 
+     #      col = alpha("gray40", 0.6), cex = .5)
+    points(rep(4, nrow(da_p)) + runif(nrow(da_p), -.1, .1), da_p$s_gluc, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    boxplot(da_e$s_gluc, add = TRUE, at = 2, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    #boxplot(da_l$s_gluc, add = TRUE, at = 3, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    boxplot(da_p$s_gluc, add = TRUE, at = 4, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    
+    
+    plot(1, 1, type = "n", yaxt = "n", xaxt = "n", xlab = "", 
+         ylab = "Blood Glucose (mg/dl)", bty = "n",
+         xlim = c(1.5, 4.5), ylim = c(-100, 150), xaxs = "i", yaxs = "i",
+         main = "Glucose Response")
+    axis(1, c(-10, 2, 3, 4, 10), c("", "Early Inc", "", "Provision", ""))  
+    axis(2, seq(-500, 500, 50), las = 2)
+    abline(h = 0, lty = 2)
+    points(rep(2, nrow(da_e)) + runif(nrow(da_e), -.1, .1), da_e$gluc_resp, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    #points(rep(3, nrow(da_l)) + runif(nrow(da_l), -.1, .1), da_l$s_gluc, pch = 16, 
+    #      col = alpha("gray40", 0.6), cex = .5)
+    points(rep(4, nrow(da_p)) + runif(nrow(da_p), -.1, .1), da_p$gluc_resp, pch = 16, 
+           col = alpha("gray40", 0.6), cex = .5)
+    boxplot(da_e$gluc_resp, add = TRUE, at = 2, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    #boxplot(da_l$s_gluc, add = TRUE, at = 3, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    boxplot(da_p$gluc_resp, add = TRUE, at = 4, axes = FALSE, outline = FALSE, col = alpha("chartreuse3", 0.6))
+    
+    
+## Models
+    
+    m1 <- lmer(b_gluc ~ b_cort + mass + sex + (1|band), data = da2n)
+    m2 <- lmer(s_gluc ~ s_cort + mass + sex + (1|band), data = da2n)
+    m3 <- lmer(d_gluc ~ d_cort + mass + sex + (1|band), data = da2n)
+    m3.5 <- lmer(a_gluc ~ a_cort + mass + sex + (1|band), data = da2n)
+    
+    m4 <- lmer(gluc_resp ~ s_resp + mass + sex + (1|band), data = da2n)
+    m5 <- lmer(gluc_feed ~ n_feed + mass + sex + (1|band), data = da2n)
+    m6 <- lm(gluc_ainc ~ a_inc + mass, data = da2n)
+    
+    tab_model(m1, m2, m3, m3.5, m4, m5, m6)
+    
+    
+## Population comparison
+    
+    m1 <- lmer(b_gluc ~ b_cort + mass + sex + state + (1|band), data = da2)
+    m2 <- lmer(s_gluc ~ s_cort + mass + sex + state + (1|band), data = da2)
+    
+    m3 <- lmer(gluc_resp ~ s_resp + mass + sex + state + (1|band), data = da2)
+    
+    tab_model(m1, m2, m3)
+    
+## Nestling models
+    dn$ubox <- paste(dn$site, dn$box, sep = "_")
+    
+    m1 <- lmer(b_gluc ~ b_cort + mass + (1|ubox), data = dn)
+    m2 <- lmer(s_gluc ~ s_cort + mass + (1|ubox), data = dn)
+    m3 <- lmer(d_gluc ~ d_cort + mass + (1|ubox), data = dn)
+    m4 <- lmer(a_gluc ~ a_cort + massd15 + (1|ubox), data = dn)
+    
+    tab_model(m1, m2, m3, m4)
+    
+    m5 <- lmer(gluc_resp ~ s_resp + mass + (1|ubox), data = dn)
+    m6 <- lmer(gluc_feed ~ n_feed + mass + (1|ubox), data = dn)
+    m7 <- lmer(gluc_ainc ~ a_inc + massd15 + (1|ubox), data = dn)
+    
+    tab_model(m5, m6, m7)
+    
+    
+    
+    
