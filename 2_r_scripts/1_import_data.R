@@ -21,7 +21,7 @@
   pacman::p_load(plyr, lme4, ggplot2, here, scales, lmerTest, sjPlot)
 
 ## Load in main data file that includes all glucose & cort measures
-  d <- read.delim(here("/1_raw_data/data_glucose_cort.txt"))
+  d <- read.delim(here::here("1_raw_data/data_glucose_cort.txt"))
   
 ## Substituting 0.47 as the minimum detectable amount of corticosterone.
   # In some cases this was done manually when running ELISA, but this is
