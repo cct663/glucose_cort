@@ -18,8 +18,8 @@
 # Nestlings: only from NY in 2019. acth is 3 days after b/s/d series
 
 ## Load packages ----
-    pacman::p_load(plyr, lme4, ggplot2, here, scales, lmerTest, sjPlot, scales,
-                   tidyverse, raincloudplots, viridis, ggExtra, MASS, rethinking)
+    pacman::p_load(plyr, lme4, ggplot2, here, scales, lmerTest, sjPlot, scales, emmeans,
+                   tidyverse, raincloudplots, viridis, ggExtra, MASS, rethinking, rptR)
 
 ## Load & clean data ----
       # ACTH validation experiment data
@@ -50,13 +50,30 @@
       ## Make a separate dataset for adults and exclude any post treatment measures.
             # Also make a separate dataset just for New York.
               da <- subset(d, d$class == "adult")   
-              da2 <- subset(da, da$post_trt == "no") # excludes all post treatment measures
-              da2n <- subset(da2, da2$state == "NY") # New York only
+            # Remove post treatment samples from corticosterone dosed birds
+              da$post_trt2 <- paste(da$post_trt, da$treatment, sep = "_")
+              da2 <- subset(da, da$post_trt2 != "yes_CORT_3d")
+              da2 <- subset(da2, da2$post_trt2 != "yes_CORT_6d")
+              da2n <- subset(da, da$state == "NY") # New York only
       
       # Make a separate dataframe for nestlings
               dn <- subset(d, d$class == "nestling")
               
-
+## Glucose repeatability ----
+    da2nx <- subset(da2, is.na(da2$b_gluc) == FALSE & is.na(da2$s_gluc) == FALSE & is.na(da2$gluc_resp) == FALSE)          
+    for(i in 1:nrow(da2nx)){
+      da2nx$count[i] <- nrow(subset(da2nx, da2nx$band == da2nx$band[i]))
+    }          
+    da2x <- subset(da2nx, da2nx$count > 1)
+              
+    r_base <- rpt(b_gluc ~ (1|band), grname = "band", data = da2x, npermut = 0, datatype = "Gaussian")
+    r_str <- rpt(s_gluc ~ (1|band), grname = "band", data = da2x, npermut = 0, datatype = "Gaussian")
+    r_resp <- rpt(gluc_resp ~ (1|band), grname = "band", data = da2x, npermut = 0, datatype = "Gaussian")
+    
+    r_basec <- rpt(b_cort ~ (1|band), grname = "band", data = da2x, npermut = 0, datatype = "Gaussian")
+    r_strc <- rpt(s_cort ~ (1|band), grname = "band", data = da2x, npermut = 0, datatype = "Gaussian")
+    r_respc <- rpt(s_resp ~ (1|band), grname = "band", data = da2x, npermut = 0, datatype = "Gaussian")
+    
 ## Model group means NY ----
               recode <- data.frame(type = c("b_cort", "s_cort", "d_cort", "a_cort", 
                                             "b_gluc", "s_gluc", "d_gluc", "a_gluc"),
@@ -65,58 +82,58 @@
               
             #Adults
               d1 <- da2n %>%
-                pivot_longer(cols = c("b_cort", "s_cort", "d_cort", "a_cort"), names_to = "type", values_to = "cort")
-              d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "d_cort", "a_cort"))
+                pivot_longer(cols = c("b_cort", "s_cort", "a_cort"), names_to = "type", values_to = "cort")
+              d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "a_cort"))
               d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
               d1 <- plyr::join(d1, recode, "type")
               
-              m1 <- lmer(cort ~ timepoint + sex + as.factor(year) + (1|band), data = d1)
+              m1 <- lmer(cort ~ timepoint + sex + (1|band), data = d1)
               m1_em <- as.data.frame(emmeans(m1, "timepoint", lmer.df = "satterthwaite"))
-              m1_em$type <- factor(c("b_cort", "s_cort", "d_cort", "a_cort"), levels = c("b_cort", "s_cort", "d_cort", "a_cort"))
+              m1_em$type <- factor(c("b_cort", "s_cort", "a_cort"), levels = c("b_cort", "s_cort", "a_cort"))
               m1_eml <- pivot_longer(m1_em, cols = c("lower.CL", "upper.CL"), values_to = "y")
               
               
               
               d1 <- da2n %>%
-                pivot_longer(cols = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
-              d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"))
+                pivot_longer(cols = c("b_gluc", "s_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
+              d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "a_gluc"))
               d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
               d1 <- plyr::join(d1, recode, "type")
               
               m2 <- lmer(glucose ~ timepoint + sex + (1|band), data = d1)
               m2_em <- as.data.frame(emmeans(m2, "timepoint", lmer.df = "satterthwaite"))
-              m2_em$type <- factor(c("b_gluc", "s_gluc", "d_gluc", "a_gluc"), levels = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"))
+              m2_em$type <- factor(c("b_gluc", "s_gluc", "a_gluc"), levels = c("b_gluc", "s_gluc", "a_gluc"))
               m2_eml <- pivot_longer(m2_em, cols = c("lower.CL", "upper.CL"), values_to = "y")
               
               
             #Nestlings
               d1 <- dn %>%
-                pivot_longer(cols = c("b_cort", "s_cort", "d_cort", "a_cort"), names_to = "type", values_to = "cort")
-              d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "d_cort", "a_cort"))
+                pivot_longer(cols = c("b_cort", "s_cort", "a_cort"), names_to = "type", values_to = "cort")
+              d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "a_cort"))
               d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
               d1$nest <- paste(d1$site, d1$box, sep = "_")
               d1 <- plyr::join(d1, recode, "type")
               
-              m3 <- lmer(cort ~ timepoint + (1|nest) + (1|band), data = d1)
+              m3 <- lmer(cort ~ timepoint + (1|nest), data = d1)
               m3_em <- as.data.frame(emmeans(m3, "timepoint", lmer.df = "satterthwaite"))
-              m3_em$type <- factor(c("b_cort", "s_cort", "d_cort", "a_cort"), levels = c("b_cort", "s_cort", "d_cort", "a_cort"))
+              m3_em$type <- factor(c("b_cort", "s_cort", "a_cort"), levels = c("b_cort", "s_cort", "a_cort"))
               m3_eml <- pivot_longer(m3_em, cols = c("lower.CL", "upper.CL"), values_to = "y")
               
               d1 <- dn %>%
-                pivot_longer(cols = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
-              d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"))
+                pivot_longer(cols = c("b_gluc", "s_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
+              d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "a_gluc"))
               d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
               d1$nest <- paste(d1$site, d1$box, sep = "_")
               d1 <- plyr::join(d1, recode, "type")
               
-              m4 <- lmer(glucose ~ timepoint + (1|nest) + (1|band), data = d1)
+              m4 <- lmer(glucose ~ timepoint + (1|nest), data = d1)
               m4_em <- as.data.frame(emmeans(m4, "timepoint", lmer.df = "satterthwaite"))
-              m4_em$type <- factor(c("b_gluc", "s_gluc", "d_gluc", "a_gluc"), levels = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"))
+              m4_em$type <- factor(c("b_gluc", "s_gluc", "a_gluc"), levels = c("b_gluc", "s_gluc", "a_gluc"))
               m4_eml <- pivot_longer(m4_em, cols = c("lower.CL", "upper.CL"), values_to = "y")
               
               t1 <- tab_model(m1, m2, m3, m4, show.re.var = FALSE, show.p = FALSE,
                         dv.labels = c("Adult Corticosterone", "Adult Glucose", "Nestling Corticosterone", "Nestling Glucose"),
-                        pred.labels = c("Intercept (Base / Female)", "Induced", "Post-Dexamethasone", "Post-Cortrosyn", "Sex (Male)"))
+                        pred.labels = c("Intercept (Base / Female)", "Induced", "Post-Cortrosyn", "Sex (Male)"))
               
               saveRDS(t1,
                       here::here("2_r_scripts/ny_ad_nestling_basic_model.rds"))
@@ -126,8 +143,8 @@
     # NY nestling       
         # Corticosterone
             d1 <- dn %>%
-            pivot_longer(cols = c("b_cort", "s_cort", "d_cort", "a_cort"), names_to = "type", values_to = "cort")
-          d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "d_cort", "a_cort"))
+            pivot_longer(cols = c("b_cort", "s_cort", "a_cort"), names_to = "type", values_to = "cort")
+          d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "a_cort"))
           d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
           p1 <- ggplot(data = d1, mapping = aes(x = type, y = cort, fill = type, color = type)) + 
             geom_boxplot(alpha = 0.2, outlier.shape = NA, position = position_nudge(x = -0.3), width = 0.25) +
@@ -136,7 +153,7 @@
             scale_fill_viridis(discrete = TRUE) + 
             scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
             xlab("") + ylab(paste("Corticosterone (ng/\u03BCl)")) +
-            scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn")) +
+            scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn")) +
             annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5)
           
           # add in confidence intevals from emmeans model
@@ -146,8 +163,8 @@
                   
        # Glucose           
           d1 <- dn %>%
-            pivot_longer(cols = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
-          d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"))
+            pivot_longer(cols = c("b_gluc", "s_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
+          d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "a_gluc"))
           d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
             p2 <- ggplot(data = d1, mapping = aes(x = type, y = glucose, fill = type, color = type)) + 
               geom_boxplot(alpha = 0.2, outlier.shape = NA, position = position_nudge(x = -0.3), width = 0.25) +
@@ -156,7 +173,7 @@
               scale_fill_viridis(discrete = TRUE) + 
               scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
               xlab("") + ylab("Glucose (mg/dl)") +
-              scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn"))+
+              scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn"))+
               annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5)
             
             # add in emmeans intervals
@@ -170,8 +187,8 @@
       # NY adult       
           # Corticosterone
           d1 <- da2n %>%
-            pivot_longer(cols = c("b_cort", "s_cort", "d_cort", "a_cort"), names_to = "type", values_to = "cort")
-          d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "d_cort", "a_cort"))
+            pivot_longer(cols = c("b_cort", "s_cort", "a_cort"), names_to = "type", values_to = "cort")
+          d1$type <- factor(d1$type, levels = c("b_cort", "s_cort", "a_cort"))
           d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
           p1 <- ggplot(data = d1, mapping = aes(x = type, y = cort, fill = type, color = type)) + 
             geom_boxplot(alpha = 0.2, position = position_nudge(x = -0.3), width = 0.25, outlier.shape = NA) +
@@ -180,7 +197,7 @@
             scale_fill_viridis(discrete = TRUE) + 
             scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
             xlab("") + ylab(paste("Corticosterone (ng/\u03BCl)")) +
-            scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn")) +
+            scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn")) +
             ylim(0, 110) +
             annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5)
           
@@ -190,8 +207,8 @@
           
           # Glucose           
               d1 <- da2n %>%
-                pivot_longer(cols = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
-              d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "d_gluc", "a_gluc"))
+                pivot_longer(cols = c("b_gluc", "s_gluc", "a_gluc"), names_to = "type", values_to = "glucose")
+              d1$type <- factor(d1$type, levels = c("b_gluc", "s_gluc", "a_gluc"))
               d1$unique <- paste(d1$band, d1$year, d1$date, sep = "_")
               p2 <- ggplot(data = d1, mapping = aes(x = type, y = glucose, fill = type, color = type)) + 
                 geom_boxplot(alpha = 0.2, outlier.shape = NA, width = 0.25, position = position_nudge(x = -0.3)) +
@@ -200,7 +217,7 @@
                 scale_fill_viridis(discrete = TRUE) + 
                 scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
                 xlab("") + ylab("Glucose (mg/dl)") +
-                scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn"))+
+                scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn"))+
                 annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5)
               
               # add in emmeans intervals
@@ -277,15 +294,15 @@
    #p4m <- ggMarginal(p4, type = "boxplot", margins = "y", groupColour = TRUE, groupFill = TRUE, xparams = list(varwidth = FALSE))
    
    ggsave(here::here("2_r_scripts/delta_plots.png"),
-    ggpubr::ggarrange(p1, p2, p3, p4, nrow = 2, ncol = 2),
-    device = "png", width = 8, height = 7, units = "in")
+    ggpubr::ggarrange(p1, p2, p4, nrow = 1, ncol = 3),
+    device = "png", width = 10.5, height = 3.75, units = "in")
    
 ## Modeling individual variation NY ----
    
    # Adults
         # Baseline
             da2n$predictor <- da2n$b_cort
-            mb <- lmer(b_gluc ~ scale(predictor) + sex + (1|band), data = da2n)
+            mb <- lmer(b_gluc ~ scale(predictor) + scale(mass) + sex + (1|band), data = da2n)
           
         # Induced
             da2n$predictor <- da2n$s_resp
@@ -297,10 +314,10 @@
             
         # Post-cortrosyn
             da2n$predictor <- da2n$a_inc
-            ma <- lm(gluc_ainc ~ scale(predictor), data = da2n)
+            ma <- lm(gluc_ainc ~ scale(predictor) + scale(mass), data = da2n)
             
-            ta <- tab_model(mb, ms, md, ma, show.re.var = FALSE,
-                      dv.labels = c("Baseline Glucose", "Induced - Base Glucose", "Induced - Post-Dex Glucose", "Post-Cortrosyn - Induced Glucose"),
+            ta <- tab_model(mb, ms, ma, show.re.var = FALSE,
+                      dv.labels = c("Baseline Glucose", "Induced - Base Glucose", "Post-Cortrosyn - Induced Glucose"),
                       pred.labels = c("Intercept", "Corticosterone", "Mass", "Sex (male)", "Corticosterone * Mass"))
             saveRDS(ta, here::here("2_r_scripts/adult_covariation.rds"))
             
@@ -345,7 +362,7 @@
             dn$nest <- paste(dn$site, dn$box, sep = "_")
           # Baseline
             dn$predictor <- dn$b_cort
-            mb <- lmer(b_gluc ~ scale(predictor) + scale(mass) + (1|nest), data = dn)
+            mb <- lmer(b_gluc ~ scale(predictor) * scale(mass) + (1|nest), data = dn)
             
           # Induced
             dn$predictor <- dn$s_resp
@@ -353,16 +370,16 @@
             
           # Post-dex
             dn$predictor <- dn$n_feed
-            md <- lmer(gluc_feed ~ scale(predictor) + scale(mass) + (1|nest), data = dn)
+            md <- lmer(gluc_feed ~ scale(predictor) * scale(mass) + (1|nest), data = dn)
             
           # Post-cortrosyn
             dn$predictor <- dn$a_inc
             ma <- lmer(gluc_ainc ~ scale(predictor) + scale(mass) + (1|nest), data = dn)
             
-            tn <- tab_model(mb, ms, md, ma, show.re.var = FALSE, 
-                      dv.labels = c("Baseline Glucose", "Induced - Base Glucose", "Induced - Post-Dex Glucose", 
+            tn <- tab_model(mb, ms, ma, show.re.var = FALSE, 
+                      dv.labels = c("Baseline Glucose", "Induced - Base Glucose", 
                                     "Post-Cortrosyn - Induced Glucose"),
-                      pred.labels = c("Intercept", "Corticosterone", "Mass"))
+                      pred.labels = c("Intercept", "Corticosterone", "Mass", "Corticosterone * Mass"))
             saveRDS(tn, here::here("2_r_scripts/nestling_covariation.rds"))
    
             
@@ -488,51 +505,79 @@
                      device = "png", width = 7.5, height = 4, units = "in")    
           
                     
-## Within-individual covariance DELETE ----
-   ## DELETE THIS SECTION
+## Within-individual covariance ----
               library(standardize)
               
               
    da2n$byd <- paste(da2n$band, da2n$year, da2n$date, sep = "_")
-   ggplot(data = da2n, mapping = aes(x = s_resp, y = gluc_resp, color = as.factor(band))) +
+   da2nw <- subset(da2n, is.na(da2n$b_cort) == FALSE & is.na(da2n$s_cort) == FALSE &
+                     is.na(da2n$b_gluc) == FALSE & is.na(da2n$s_gluc) == FALSE)
+   for(i in 1:nrow(da2nw)){
+     da2nw$num_samps[i] <- nrow(subset(da2nw, da2nw$band == da2nw$band[i]))
+   }
+   da2nw2 <- subset(da2nw, da2nw$num_samps > 3)
+   
+   #Standardize within individuals
+      da2nw2$b_gluc_s <- scale_by(b_gluc ~ as.factor(band), data = da2nw2)
+      da2nw2$b_cort_s <- scale_by(b_cort ~ as.factor(band), data = da2nw2)
+      da2nw2$s_gluc_s <- scale_by(s_gluc ~ as.factor(band), data = da2nw2)
+      da2nw2$s_cort_s <- scale_by(s_cort ~ as.factor(band), data = da2nw2)
+      da2nw2$s_resp_s <- scale_by(s_resp ~ as.factor(band), data = da2nw2)
+      da2nw2$gluc_resp_s <- scale_by(gluc_resp ~ as.factor(band), data = da2nw2)
+   
+   p1 <- ggplot(data = da2nw2, mapping = aes(x = b_cort_s, y = b_gluc_s, by = as.factor(band))) +
      geom_point(alpha = 0.5) +
-     geom_smooth(method = "lm", se = FALSE) +
+     geom_line(stat = "smooth", method = "lm", alpha = 0.9, color = "lightblue") +
      theme_classic() +
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
-     xlim(-5, 100) + ylim(-75, 150)
+     geom_smooth(data = da2nw2, mapping = aes(x = b_cort_s, y = b_gluc_s, by = state), method = "lm", color = "coral3",
+                 fill = "coral3") +
+     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+     ylim(-2.5, 2.5) +
+     xlab("Within-individual base corticosterone") +
+     ylab("Within-individual base glucose")
    
    
-   da2nx <- subset(da2n, is.na(da2n$s_resp) == FALSE & is.na(da2n$gluc_resp) == FALSE)
-   slopes <- data.frame(band = unique(da2nx$band))
-   for(i in 1:nrow(slopes)){
-     sub <- subset(da2nx, da2nx$band == slopes$band[i])
-     if(nrow(sub) > 1){
-       mx <- lm(b_gluc ~ b_cort, data = sub)
-       slopes$intercept[i] <- coef(mx)[1]
-       slopes$slope[i] <- coef(mx)[2]
-       slopes$count[i] <- nrow(sub)
-     }
-   }
-   
-   ggplot(data = slopes, mapping = aes(y = slope, x = 1)) + geom_boxplot() + geom_jitter(width = 0.1) + ylim(-5, 5)
-   
-   da2n$b_gluc_s <- scale_by(b_gluc ~ as.factor(band), data = da2n, scale = 0)
-   da2n$b_cort_s <- scale_by(b_cort ~ as.factor(band), data = da2n, scale = 0)
-   da2nx <- subset(da2n, da2n$b_cort_s < 3 & da2n$b_cort_s > -5)
-   ggplot(data = da2nx, mapping = aes(x = b_cort_s, y = b_gluc_s)) +
-     geom_smooth(method = "lm", se = TRUE) +
+   p2 <- ggplot(data = da2nw2, mapping = aes(x = s_cort_s, y = s_gluc_s, by = as.factor(band))) +
+     geom_point(alpha = 0.5) +
+     geom_line(stat = "smooth", method = "lm", alpha = 0.9, color = "lightblue") +
+     theme_classic() +
      guides(fill = FALSE, color = FALSE) +
-     geom_point()
+     annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5) +
+     geom_smooth(data = da2nw2, mapping = aes(x = s_cort_s, y = s_gluc_s, by = state), method = "lm", color = "coral3",
+                 fill = "coral3") +
+     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+     ylim(-2.5, 2.5) +
+     xlab("Within-individual base corticosterone") +
+     ylab("Within-individual base glucose")
    
-   da2n$s_resp_s <- scale_by(s_resp ~ as.factor(band), data = da2n, scale = 0)
-   da2n$g_resp_s <- scale_by(gluc_resp ~ as.factor(band), data = da2n, scale = 0)
-   da2nx <- subset(da2n, da2n$s_resp_s > -40 & da2n$s_resp_s < 75)
-   ggplot(data = da2nx, mapping = aes(x = s_resp_s, y = g_resp_s)) +
-     geom_smooth(method = "lm", se = TRUE) +
+   
+   p3 <- ggplot(data = da2nw2, mapping = aes(x = s_resp_s, y = gluc_resp_s, by = as.factor(band))) +
+     geom_point(alpha = 0.5) +
+     geom_line(stat = "smooth", method = "lm", alpha = 0.9, color = "lightblue") +
+     theme_classic() +
      guides(fill = FALSE, color = FALSE) +
-     geom_point()
+     annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
+     geom_smooth(data = da2nw2, mapping = aes(x = s_resp_s, y = gluc_resp_s, by = state), method = "lm", color = "coral3",
+                 fill = "coral3") +
+     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+     ylim(-2.5, 2.1) +
+     xlab("Within-individual base corticosterone") +
+     ylab("Within-individual base glucose")
    
+   ggpubr::ggarrange(p1, p2, p3, nrow = 1, ncol = 3)
+   
+   
+   wi_b <- lm(b_gluc_s ~ 0 + b_cort_s, data = da2nw2)
+   wi_s <- lm(s_gluc_s ~ 0 + s_cort_s, data = da2nw2)
+   wi_sr <- lm(s_resp_s ~ 0 + gluc_resp_s, data = da2nw2)
+   
+   tab_model(wi_b, wi_s, wi_sr)
+   
+   ggsave(here::here("2_r_scripts/within_individual.png"),
+          ggpubr::ggarrange(p1, p2, p3, nrow = 1, ncol = 3),
+          device = "png", width = 10.5, height = 3.75, units = "in")
           
 ## ACTH Validation Models ----
         

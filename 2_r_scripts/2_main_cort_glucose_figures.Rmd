@@ -68,3 +68,6 @@ tc2 <- readRDS(here::here("2_r_scripts/pop_change_glucose.rds"))
 tc1
 tc2
 ```
+
+# Within individual
+![](within_individual.png)\
