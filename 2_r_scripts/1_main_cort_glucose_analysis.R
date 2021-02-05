@@ -549,8 +549,8 @@
                  fill = "coral3") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
      ylim(-2.5, 2.5) +
-     xlab("Within-individual base corticosterone") +
-     ylab("Within-individual base glucose")
+     xlab("Within-individual induced corticosterone") +
+     ylab("Within-individual induced glucose")
    
    
    p3 <- ggplot(data = da2nw2, mapping = aes(x = s_resp_s, y = gluc_resp_s, by = as.factor(band))) +
@@ -563,8 +563,8 @@
                  fill = "coral3") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
      ylim(-2.5, 2.1) +
-     xlab("Within-individual base corticosterone") +
-     ylab("Within-individual base glucose")
+     xlab("Within-individual \u0394 corticosterone") +
+     ylab("Within-individual \u0394 glucose")
    
    ggpubr::ggarrange(p1, p2, p3, nrow = 1, ncol = 3)
    
