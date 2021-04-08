@@ -283,8 +283,8 @@
      scale_fill_manual(values = c("slateblue", "orange")) +
      scale_color_manual(values = c("slateblue", "orange")) +
      guides(fill = FALSE, color = FALSE) +
-     annotate("text", x = -Inf, y = Inf, label = "D", hjust = -0.5, vjust = 1.5) +
-     xlab("Post-cotrosyn - induced corticosterone (ng/\u03BCl)") +
+     annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
+     xlab("Post-cortosyn - induced corticosterone (ng/\u03BCl)") +
      ylab("Post-cortrosyn - induced glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
      geom_vline(xintercept = 0, linetype = "dashed", color = "gray60")
