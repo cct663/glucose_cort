@@ -1,4 +1,3 @@
-######################################################################
 ## Script to analyze samples of glucose and corticosterone from     ##
 ## tree swallow adult and nestlings collected in NY, TN, WY, & AK   ##
 ## from 2016-2019. The main purpose is to ask if increase in cort   ##
@@ -7,9 +6,9 @@
 ## all samples were always collected and some birds were part of    ##
 ## manipulative experiments that could have influenced measures.    ##
 ##                                                                  ##
-## Code by Conor Taff, last updated 1 February 2021                 ##
-######################################################################
+## Code by Conor Taff, last updated 8 April 2021                    ##
 
+# Notes ----
 ## Some differences in samples collected by age, year, and location
 # AK, TN, WY: no dex or acth glucose; no nestlings
 # NY: dex & acth glucose in some years; acth only in 2019 and only
@@ -58,6 +57,7 @@
       
       # Make a separate dataframe for nestlings
               dn <- subset(d, d$class == "nestling")
+              dn$post_trt2 <- paste(dn$post_trt, dn$treatment, sep = "_")
               
 ## Glucose repeatability ----
     da2nx <- subset(da2, is.na(da2$b_gluc) == FALSE & is.na(da2$s_gluc) == FALSE & is.na(da2$gluc_resp) == FALSE)          
@@ -136,7 +136,7 @@
                         pred.labels = c("Intercept (Base / Female)", "Induced", "Post-Cortrosyn", "Sex (Male)"))
               
               saveRDS(t1,
-                      here::here("2_r_scripts/ny_ad_nestling_basic_model.rds"))
+                      here::here("2_r_scripts/table_s3.rds"))
               
               
 ## Plot group means NY ----
@@ -154,7 +154,8 @@
             scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
             xlab("") + ylab(paste("Corticosterone (ng/\u03BCl)")) +
             scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn")) +
-            annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5)
+            annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
+            theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13), axis.text.x = element_text(angle = 30, hjust = 1)) 
           
           # add in confidence intevals from emmeans model
             p1 <- p1 + geom_line(data = m3_eml, mapping = aes(x = type, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
@@ -174,13 +175,14 @@
               scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
               xlab("") + ylab("Glucose (mg/dl)") +
               scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn"))+
-              annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5)
+              annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5) +
+              theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13), axis.text.x = element_text(angle = 30, hjust = 1))
             
             # add in emmeans intervals
             p2 <- p2 + geom_line(data = m4_eml, mapping = aes(x = type, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
               geom_point(data = m4_em, mapping = aes(x = type, y = emmean), color = "black", shape = 23, position = position_nudge(x = 0.2))
             
-          ggsave(here::here("2_r_scripts/NY_basic_comparison_nestling.png"), 
+          ggsave(here::here("2_r_scripts/figure_2.png"), 
               ggpubr::ggarrange(p1, p2),
               device = "png", width = 5, height = 4, units = "in")    
       
@@ -199,7 +201,8 @@
             xlab("") + ylab(paste("Corticosterone (ng/\u03BCl)")) +
             scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn")) +
             ylim(0, 110) +
-            annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5)
+            annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
+            theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13), axis.text.x = element_text(angle = 30, hjust = 1))
           
                 # add in confidence intevals from emmeans model
                     p1 <- p1 + geom_line(data = m1_eml, mapping = aes(x = type, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
@@ -218,14 +221,15 @@
                 scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
                 xlab("") + ylab("Glucose (mg/dl)") +
                 scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn"))+
-                annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5)
+                annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5) +
+                theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13), axis.text.x = element_text(angle = 30, hjust = 1))
               
               # add in emmeans intervals
                   p2 <- p2 + geom_line(data = m2_eml, mapping = aes(x = type, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
                     geom_point(data = m2_em, mapping = aes(x = type, y = emmean), color = "black", shape = 23, position = position_nudge(x = 0.2))
                 
           
-          ggsave(here::here("2_r_scripts/NY_basic_comparison.png"), 
+          ggsave(here::here("2_r_scripts/figure_1.png"), 
                  ggpubr::ggarrange(p1, p2),
                  device = "png", width = 5, height = 4, units = "in")      
                   
@@ -245,8 +249,10 @@
      #guides(fill = FALSE, color = FALSE) +
      theme(legend.position = c(0.8, 0.8), legend.title = element_blank()) +
      annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
-     xlab("Baseline corticosterone (log ng/\u03BCl)") +
-     ylab("Baseline glucose (mg/dl)")
+     xlab("Baseline cort \n (log ng/\u03BCl)") +
+     ylab("Baseline glucose (mg/dl)") +
+     theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13),
+           legend.text = element_text(size = 12))
    
    p2 <- ggplot(data = dny, mapping = aes(x = s_resp, y = gluc_resp, color = class, fill = class)) +
      geom_point(alpha = 0.5, size = 0.7) +
@@ -257,10 +263,11 @@
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5) +
      xlim(-50, 100) +
-     xlab("Induced - base corticosterone (ng/\u03BCl)") +
-     ylab("Induced - base glucose (mg/dl)") +
+     xlab("Induced - baseline \n corticosterone (ng/\u03BCl)") +
+     ylab("Induced - baseline \n glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
-     geom_vline(xintercept = 0, linetype = "dashed", color = "gray60")
+     geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+     theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13))
    
    p3 <- ggplot(data = dny, mapping = aes(x = n_feed, y = gluc_feed, color = class, fill = class)) +
      geom_point(alpha = 0.5, size = 0.7) +
@@ -271,10 +278,11 @@
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
      xlim(-100, 25) +
-     xlab("Induced - post-dex corticsterone (ng/\u03BCl)") +
-     ylab("Induced - post-dex glucose (mg/dl)") +
+     xlab("Induced - post-dex \n corticosterone (ng/\u03BCl)") +
+     ylab("Induced - post-dex \n glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
-     geom_vline(xintercept = 0, linetype = "dashed", color = "gray60")
+     geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+     theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13))
    
    p4 <- ggplot(data = dny, mapping = aes(x = a_inc, y = gluc_ainc, color = class, fill = class)) +
      geom_point(alpha = 0.5, size = 0.7) +
@@ -284,16 +292,17 @@
      scale_color_manual(values = c("slateblue", "orange")) +
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
-     xlab("Post-cortosyn - induced corticosterone (ng/\u03BCl)") +
-     ylab("Post-cortrosyn - induced glucose (mg/dl)") +
+     xlab("Post-cortosyn - induced \n corticosterone (ng/\u03BCl)") +
+     ylab("Post-cortrosyn - induced \n glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
-     geom_vline(xintercept = 0, linetype = "dashed", color = "gray60")
+     geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+     theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13))
    
    #p2m <- ggMarginal(p2, type = "boxplot", margins = "y", groupColour = TRUE, groupFill = TRUE) 
    #p3m <- ggMarginal(p3, type = "boxplot", margins = "y", groupColour = TRUE, groupFill = TRUE) 
    #p4m <- ggMarginal(p4, type = "boxplot", margins = "y", groupColour = TRUE, groupFill = TRUE, xparams = list(varwidth = FALSE))
    
-   ggsave(here::here("2_r_scripts/delta_plots.png"),
+   ggsave(here::here("2_r_scripts/figure_3.png"),
     ggpubr::ggarrange(p1, p2, p4, nrow = 1, ncol = 3),
     device = "png", width = 10.5, height = 3.75, units = "in")
    
@@ -319,7 +328,7 @@
             ta <- tab_model(mb, ms, ma, show.re.var = FALSE,
                       dv.labels = c("Baseline Glucose", "Induced - Base Glucose", "Post-Cortrosyn - Induced Glucose"),
                       pred.labels = c("Intercept", "Corticosterone", "Mass", "Sex (male)", "Corticosterone * Mass"))
-            saveRDS(ta, here::here("2_r_scripts/adult_covariation.rds"))
+            saveRDS(ta, here::here("2_r_scripts/table_s4.rds"))
             
             #emmeans(ms, "sex", lmer.df = "Satterthwaite")
             
@@ -337,9 +346,10 @@
            
            colss <- viridis(n = 5, option = "C")
            
-           png(here::here("2_r_scripts/mass_interaction.png"), width = 6.5, height = 6.5, units = "in", res = 300)
+           png(here::here("2_r_scripts/figure_4.png"), width = 6.5, height = 6.5, units = "in", res = 300)
              plot(r, mu_neg1, lwd = 2, type = "n", xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlim = c(-2.1, 2.1), 
-                  ylim = c(-40, 100), bty = "n", xlab = "Induced - baseline corticosterone (SD units)", ylab = "Induced - baseline glucose (mg/dl)")
+                  ylim = c(-40, 100), bty = "n", xlab = "Induced - baseline corticosterone (SD units)", ylab = "Induced - baseline glucose (mg/dl)",
+                  cex.lab = 1.5)
              axis(1, seq(-5, 5, 1)) 
              axis(2, seq(-500, 500, 20), las = 2)
              abline(h = 0, lty = 2, col = "gray60")
@@ -352,7 +362,7 @@
              shade(ci_pos1, r, col = alpha(colss[4], 0.3))
              lines(r, mu_pos1, lwd = 2, col = colss[4])
              
-             legend(-0.55, -15, c("mass -1 SD", "mass  0 SD", "mass  1 SD"), bty = "n", col = colss[2:4], lwd = 2)
+             legend(-0.7, -12, c("mass -1 SD", "mass  0 SD", "mass  1 SD"), bty = "n", col = colss[2:4], lwd = 2, cex = 1.2)
             dev.off()
            
            
@@ -380,7 +390,7 @@
                       dv.labels = c("Baseline Glucose", "Induced - Base Glucose", 
                                     "Post-Cortrosyn - Induced Glucose"),
                       pred.labels = c("Intercept", "Corticosterone", "Mass", "Corticosterone * Mass"))
-            saveRDS(tn, here::here("2_r_scripts/nestling_covariation.rds"))
+            saveRDS(tn, here::here("2_r_scripts/table_s5.rds"))
    
             
 ## Modeling population comparison ----
@@ -417,10 +427,10 @@
                          pred.labels = c("Intercept", "Induced - Base Corticosterone", "Mass", "Corticosterone * Mass"))
         
         saveRDS(tc1,
-                here::here("2_r_scripts/pop_base_glucose.rds"))
+                here::here("2_r_scripts/table_s6.rds"))
         
         saveRDS(tc2,
-                here::here("2_r_scripts/pop_change_glucose.rds"))
+                here::here("2_r_scripts/table_s7.rds"))
         
 
       # Do states differ in glucose levels
@@ -458,7 +468,8 @@
                 xlab("") + ylab("Baseline glucose (mg/dl)") +
                 guides(color = FALSE, fill = FALSE) +
                 #scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn"))+
-                annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5)
+                annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
+              theme(axis.title = element_text(size = 14), axis.text.x = element_text(size = 12))
               
               # add in emmeans intervals
               pop1 <- pop1 + geom_line(data = em_mdl, mapping = aes(x = state, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
@@ -475,7 +486,8 @@
                 xlab("") + ylab("Induced glucose (mg/dl)") +
                 guides(color = FALSE, fill = FALSE) +
                 #scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn"))+
-                annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5)
+                annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5) +
+                theme(axis.title = element_text(size = 14), axis.text.x = element_text(size = 12))
               
               # add in emmeans intervals
               pop2 <- pop2 + geom_line(data = em_md2l, mapping = aes(x = state, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
@@ -491,7 +503,8 @@
                 xlab("") + ylab("Induced - base glucose (mg/dl)") +
                 guides(color = FALSE, fill = FALSE) +
                 #scale_x_discrete(labels = c("Base", "Induced", "Dex.", "Cortrosyn"))+
-                annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5)
+                annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
+                theme(axis.title = element_text(size = 14), axis.text.x = element_text(size = 12))
               
               # add in emmeans intervals
               pop3 <- pop3 + geom_line(data = em_md3l, mapping = aes(x = state, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
@@ -500,7 +513,7 @@
               
           # save figure    
               
-              ggsave(here::here("2_r_scripts/pop_comparison.png"), 
+              ggsave(here::here("2_r_scripts/figure_5.png"), 
                      ggpubr::ggarrange(pop1, pop2, pop3, nrow = 1),
                      device = "png", width = 7.5, height = 4, units = "in")    
           
@@ -535,8 +548,9 @@
                  fill = "coral3") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
      ylim(-2.5, 2.5) +
-     xlab("Within-individual base corticosterone") +
-     ylab("Within-individual base glucose")
+     xlab("Within-individual \n base corticosterone") +
+     ylab("Within-individual \n base glucose") +
+     theme(axis.title = element_text(size = 13), axis.text = element_text(size = 12))
    
    
    p2 <- ggplot(data = da2nw2, mapping = aes(x = s_cort_s, y = s_gluc_s, by = as.factor(band))) +
@@ -549,8 +563,9 @@
                  fill = "coral3") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
      ylim(-2.5, 2.5) +
-     xlab("Within-individual induced corticosterone") +
-     ylab("Within-individual induced glucose")
+     xlab("Within-individual \n induced corticosterone") +
+     ylab("Within-individual \n induced glucose") +
+     theme(axis.title = element_text(size = 13), axis.text = element_text(size = 12))
    
    
    p3 <- ggplot(data = da2nw2, mapping = aes(x = s_resp_s, y = gluc_resp_s, by = as.factor(band))) +
@@ -563,8 +578,9 @@
                  fill = "coral3") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
      ylim(-2.5, 2.1) +
-     xlab("Within-individual \u0394 corticosterone") +
-     ylab("Within-individual \u0394 glucose")
+     xlab("Within-individual \n \u0394 corticosterone") +
+     ylab("Within-individual \n \u0394 glucose") +
+     theme(axis.title = element_text(size = 13), axis.text = element_text(size = 12))
    
    ggpubr::ggarrange(p1, p2, p3, nrow = 1, ncol = 3)
    
@@ -575,7 +591,7 @@
    
    tab_model(wi_b, wi_s, wi_sr)
    
-   ggsave(here::here("2_r_scripts/within_individual.png"),
+   ggsave(here::here("2_r_scripts/figure_6.png"),
           ggpubr::ggarrange(p1, p2, p3, nrow = 1, ncol = 3),
           device = "png", width = 10.5, height = 3.75, units = "in")
           
@@ -607,7 +623,7 @@
                                       "Cortrosyn at Baseline", "Cortrosyn at Timepoint 2", "Cortrosyn at Timepoint 3"),
                       dv.labels = c("Nestling Corticosterone", "Adult Corticosterone"))
             
-            saveRDS(t1, here::here("2_r_scripts/acth_table.rds"))
+            saveRDS(t1, here::here("2_r_scripts/table_s1.rds"))
         
         # Note that I want to put this table in the pdf output supplementary materials, but there is no direct way to 
         # use sjplot to put html tables into a markdown pdf. I manually saved the html as a pdf to put it in. That
@@ -628,7 +644,7 @@
               ggtitle("15 Day Old Nestlings") +
               scale_fill_discrete(name = "Treatment", labels = c("Cortrosyn", "Saline")) + guides(color = FALSE) + 
               theme(legend.position = c(0.12, 0.9))
-            ggsave(here::here("2_r_scripts/cortrosyn_nestlings.png"), plot = nest_a, width = 6, height = 5, units = "in", device = "png")
+            ggsave(here::here("2_r_scripts/figure_s2.png"), plot = nest_a, width = 6, height = 5, units = "in", device = "png")
         
         # Adults
             fem_a <- d_acth_fem %>%
@@ -645,7 +661,7 @@
               labs(fill = "Treatment") + ggtitle("Adult Females") +
               scale_fill_discrete(name = "Treatment", labels = c("Cortrosyn", "Saline")) + guides(color = FALSE) + 
               theme(legend.position = c(0.12, 0.9))
-            ggsave(here::here("2_r_scripts/cortrosyn_adults.png"), plot = fem_a, width = 6, height = 5, units = "in", device = "png")
+            ggsave(here::here("2_r_scripts/figure_s1.png"), plot = fem_a, width = 6, height = 5, units = "in", device = "png")
         
         
         

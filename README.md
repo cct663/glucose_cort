@@ -14,7 +14,7 @@ The raw data folder has all of the data used in the manuscript saved in tab deli
 
 # R scripts
 
-This folder contains all of the scripts and associated output from the manuscript. The single script in the folder reproduces all figures and analyses for both the main manuscript and the supplement and is annotated throughout to explain each section. The folder also contains figures and tables produced by the script, but these can also be re-created by running the script itself.
+This folder contains all of the scripts and associated output from the manuscript. The single script in the folder reproduces all figures and analyses for both the main manuscript and the supplement and is annotated throughout to explain each section. The folder also contains figures and tables produced by the script, but these can also be re-created by running the script itself. The only figure or table not reproduced directly from code is table S2, which lists sample sizes for different groups.
 
 # Column names
 
