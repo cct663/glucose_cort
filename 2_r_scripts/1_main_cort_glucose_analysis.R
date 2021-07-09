@@ -240,7 +240,7 @@
           
 ## Plot individual variation NY ----
     dny <- rbind(da2n, dn)        
-   p1 <- ggplot(data = dny, mapping = aes(x = log(b_cort), y = b_gluc, color = class, fill = class)) +
+   p1 <- ggplot(data = dny, mapping = aes(x = b_cort, y = b_gluc, color = class, fill = class)) +
      geom_point(alpha = 0.5, size = 0.7) +
      geom_smooth(method = "lm") +
      theme_classic() +
@@ -252,7 +252,8 @@
      xlab("Baseline cort \n (log ng/\u03BCl)") +
      ylab("Baseline glucose (mg/dl)") +
      theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13),
-           legend.text = element_text(size = 12))
+           legend.text = element_text(size = 12)) +
+     coord_cartesian(xlim = c(0, 20))
    
    p2 <- ggplot(data = dny, mapping = aes(x = s_resp, y = gluc_resp, color = class, fill = class)) +
      geom_point(alpha = 0.5, size = 0.7) +
