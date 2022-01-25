@@ -6,7 +6,7 @@
 ## all samples were always collected and some birds were part of    ##
 ## manipulative experiments that could have influenced measures.    ##
 ##                                                                  ##
-## Code by Conor Taff, last updated 8 April 2021                    ##
+## Code by Conor Taff, last updated 8 November 2021                 ##
 
 # Notes ----
 ## Some differences in samples collected by age, year, and location
@@ -17,8 +17,8 @@
 # Nestlings: only from NY in 2019. acth is 3 days after b/s/d series
 
 ## Load packages ----
-    pacman::p_load(plyr, lme4, ggplot2, here, scales, lmerTest, sjPlot, scales, emmeans,
-                   tidyverse, raincloudplots, viridis, ggExtra, MASS, rethinking, rptR)
+    pacman::p_load(plyr, lme4, ggplot2, here, scales, lmerTest, sjPlot, scales, emmeans, emojifont,
+                   tidyverse, raincloudplots, viridis, ggExtra, MASS, rethinking, rptR, DHARMa)
 
 ## Load & clean data ----
       # ACTH validation experiment data
@@ -152,7 +152,7 @@
             theme_classic() +
             scale_fill_viridis(discrete = TRUE) + 
             scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
-            xlab("") + ylab(paste("Corticosterone (ng/\u03BCl)")) +
+            xlab("") + ylab("Corticosterone (ng/mL)") +
             scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn")) +
             annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
             theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13), axis.text.x = element_text(angle = 30, hjust = 1)) 
@@ -182,9 +182,10 @@
             p2 <- p2 + geom_line(data = m4_eml, mapping = aes(x = type, y = y), col = "black", size = 1, position = position_nudge(x = 0.2)) +
               geom_point(data = m4_em, mapping = aes(x = type, y = emmean), color = "black", shape = 23, position = position_nudge(x = 0.2))
             
-          ggsave(here::here("2_r_scripts/figure_2.png"), 
-              ggpubr::ggarrange(p1, p2),
-              device = "png", width = 5, height = 4, units = "in")    
+          ggsave(here::here("2_r_scripts/figure_2b.pdf"), 
+                 ggpubr::ggarrange(p1, p2),
+              device = "pdf", width = 5, height = 4, units = "in")    
+          
       
       # NY adult       
           # Corticosterone
@@ -198,7 +199,7 @@
             theme_classic() +
             scale_fill_viridis(discrete = TRUE) + 
             scale_color_viridis(discrete = TRUE) + guides(fill = FALSE, color = FALSE) +
-            xlab("") + ylab(paste("Corticosterone (ng/\u03BCl)")) +
+            xlab("") + ylab(paste("Corticosterone (ng/mL)")) +
             scale_x_discrete(labels = c("Base", "Induced", "Cortrosyn")) +
             ylim(0, 110) +
             annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
@@ -229,9 +230,9 @@
                     geom_point(data = m2_em, mapping = aes(x = type, y = emmean), color = "black", shape = 23, position = position_nudge(x = 0.2))
                 
           
-          ggsave(here::here("2_r_scripts/figure_1.png"), 
+          ggsave(here::here("2_r_scripts/figure_1b.pdf"), 
                  ggpubr::ggarrange(p1, p2),
-                 device = "png", width = 5, height = 4, units = "in")      
+                 device = "pdf", width = 5, height = 4, units = "in")      
                   
               
           
@@ -249,7 +250,7 @@
      #guides(fill = FALSE, color = FALSE) +
      theme(legend.position = c(0.8, 0.8), legend.title = element_blank()) +
      annotate("text", x = -Inf, y = Inf, label = "A", hjust = -0.5, vjust = 1.5) +
-     xlab("Baseline cort \n (log ng/\u03BCl)") +
+     xlab("Baseline cort \n (log ng/mL)") +
      ylab("Baseline glucose (mg/dl)") +
      theme(axis.title = element_text(size = 14), axis.text = element_text(size = 13),
            legend.text = element_text(size = 12)) +
@@ -264,7 +265,7 @@
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "B", hjust = -0.5, vjust = 1.5) +
      xlim(-50, 100) +
-     xlab("Induced - baseline \n corticosterone (ng/\u03BCl)") +
+     xlab("Induced - baseline \n corticosterone (ng/mL)") +
      ylab("Induced - baseline \n glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
      geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
@@ -279,7 +280,7 @@
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
      xlim(-100, 25) +
-     xlab("Induced - post-dex \n corticosterone (ng/\u03BCl)") +
+     xlab("Induced - post-dex \n corticosterone (ng/mL)") +
      ylab("Induced - post-dex \n glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
      geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
@@ -293,7 +294,7 @@
      scale_color_manual(values = c("slateblue", "orange")) +
      guides(fill = FALSE, color = FALSE) +
      annotate("text", x = -Inf, y = Inf, label = "C", hjust = -0.5, vjust = 1.5) +
-     xlab("Post-cortosyn - induced \n corticosterone (ng/\u03BCl)") +
+     xlab("Post-cortosyn - induced \n corticosterone (ng/mL)") +
      ylab("Post-cortrosyn - induced \n glucose (mg/dl)") +
      geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
      geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
@@ -303,9 +304,9 @@
    #p3m <- ggMarginal(p3, type = "boxplot", margins = "y", groupColour = TRUE, groupFill = TRUE) 
    #p4m <- ggMarginal(p4, type = "boxplot", margins = "y", groupColour = TRUE, groupFill = TRUE, xparams = list(varwidth = FALSE))
    
-   ggsave(here::here("2_r_scripts/figure_3.png"),
+   ggsave(here::here("2_r_scripts/figure_3b.pdf"),
     ggpubr::ggarrange(p1, p2, p4, nrow = 1, ncol = 3),
-    device = "png", width = 10.5, height = 3.75, units = "in")
+    device = "pdf", width = 10.5, height = 3.75, units = "in")
    
 ## Modeling individual variation NY ----
    
@@ -313,18 +314,28 @@
         # Baseline
             da2n$predictor <- da2n$b_cort
             mb <- lmer(b_gluc ~ scale(predictor) + scale(mass) + sex + (1|band), data = da2n)
+            res_mb <- simulateResiduals(mb)
+            plot(res_mb)
+            # plotQQunif(mb)
+            # plotResiduals(mb)
           
         # Induced
             da2n$predictor <- da2n$s_resp
             ms <- lmer(gluc_resp ~ scale(predictor) * scale(mass) + sex + (1|band), data = da2n)
+            # plotQQunif(ms)
+            # plotResiduals(ms)
             
         # Post-dex
             da2n$predictor <- da2n$n_feed
             md <- lmer(gluc_feed ~ scale(predictor) + sex + (1|band), data = da2n)
+            # plotQQunif(md)
+            # plotResiduals(md)
             
         # Post-cortrosyn
             da2n$predictor <- da2n$a_inc
             ma <- lm(gluc_ainc ~ scale(predictor) + scale(mass), data = da2n)
+            # plotQQunif(ma)
+            # plotResiduals(ma)
             
             ta <- tab_model(mb, ms, ma, show.re.var = FALSE,
                       dv.labels = c("Baseline Glucose", "Induced - Base Glucose", "Post-Cortrosyn - Induced Glucose"),
@@ -347,7 +358,7 @@
            
            colss <- viridis(n = 5, option = "C")
            
-           png(here::here("2_r_scripts/figure_4.png"), width = 6.5, height = 6.5, units = "in", res = 300)
+           pdf(here::here("2_r_scripts/figure_4b.pdf"), width = 6.5, height = 6.5)
              plot(r, mu_neg1, lwd = 2, type = "n", xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlim = c(-2.1, 2.1), 
                   ylim = c(-40, 100), bty = "n", xlab = "Induced - baseline corticosterone (SD units)", ylab = "Induced - baseline glucose (mg/dl)",
                   cex.lab = 1.5)
@@ -373,7 +384,9 @@
             dn$nest <- paste(dn$site, dn$box, sep = "_")
           # Baseline
             dn$predictor <- dn$b_cort
-            mb <- lmer(b_gluc ~ scale(predictor) * scale(mass) + (1|nest), data = dn)
+            mb <- lmer(b_gluc ~ scale(predictor) * scale(mass) + (1|nest) + (1|ID), data = dn)
+            # plotQQunif(mb)
+            # plotResiduals(mb)
             
           # Induced
             dn$predictor <- dn$s_resp
@@ -514,9 +527,9 @@
               
           # save figure    
               
-              ggsave(here::here("2_r_scripts/figure_5.png"), 
+              ggsave(here::here("2_r_scripts/figure_5b.pdf"), 
                      ggpubr::ggarrange(pop1, pop2, pop3, nrow = 1),
-                     device = "png", width = 7.5, height = 4, units = "in")    
+                     device = "pdf", width = 7.5, height = 4, units = "in")    
           
                     
 ## Within-individual covariance ----
@@ -592,9 +605,9 @@
    
    tab_model(wi_b, wi_s, wi_sr)
    
-   ggsave(here::here("2_r_scripts/figure_6.png"),
+   ggsave(here::here("2_r_scripts/figure_6b.pdf"),
           ggpubr::ggarrange(p1, p2, p3, nrow = 1, ncol = 3),
-          device = "png", width = 10.5, height = 3.75, units = "in")
+          device = "pdf", width = 10.5, height = 3.75, units = "in")
           
 ## ACTH Validation Models ----
         
@@ -639,13 +652,13 @@
                            values_to = "cort", values_drop_na = TRUE) %>%
               ggplot(aes(x = timepoint, y = cort, fill = treatment)) + 
               geom_line(mapping = aes(x = timepoint, y = cort, group = band, color = treatment), alpha = 0.45) +
-              geom_boxplot(width = 0.25) + theme_classic() + xlab("Minutes After Capture") + ylab(expression(paste("Corticosterone ng/", mu, "l"))) +
+              geom_boxplot(width = 0.25) + theme_classic() + xlab("Minutes After Capture") + ylab("Corticosterone ng/mL") +
               scale_x_discrete(labels = c("<3", "15", "30")) + geom_vline(xintercept = 1.15, lty = 2, col = "gray40") + 
               annotate("text", x = 1.1, y = 40, label = "Cortrosyn or Saline Injection", angle = 90) + labs(fill = "Treatment") + 
               ggtitle("15 Day Old Nestlings") +
               scale_fill_discrete(name = "Treatment", labels = c("Cortrosyn", "Saline")) + guides(color = FALSE) + 
               theme(legend.position = c(0.12, 0.9))
-            ggsave(here::here("2_r_scripts/figure_s2.png"), plot = nest_a, width = 6, height = 5, units = "in", device = "png")
+            ggsave(here::here("2_r_scripts/figure_s2b.pdf"), plot = nest_a, width = 6, height = 5, units = "in", device = "pdf")
         
         # Adults
             fem_a <- d_acth_fem %>%
@@ -654,7 +667,7 @@
               ggplot(aes(x = timepoint, y = cort, fill = treatment)) + 
               geom_line(mapping = aes(x = timepoint, y = cort, group = band, color = treatment), alpha = 0.45) +
               geom_boxplot(width = 0.25, outlier.size = 0, outlier.stroke = 0) + theme_classic() + xlab("Minutes After Capture") + 
-              ylab(expression(paste("Corticosterone ng/", mu, "l"))) +
+              ylab("Corticosterone ng/mL") +
               scale_x_discrete(labels = c("<3", "30", "60")) + geom_vline(xintercept = 1.15, lty = 2, col = "gray40") + 
               annotate("text", x = 1.1, y = 45, label = "Saline Injection", angle = 90) + 
               geom_vline(xintercept = 2.15, lty = 2, col = "gray40") +
@@ -662,7 +675,7 @@
               labs(fill = "Treatment") + ggtitle("Adult Females") +
               scale_fill_discrete(name = "Treatment", labels = c("Cortrosyn", "Saline")) + guides(color = FALSE) + 
               theme(legend.position = c(0.12, 0.9))
-            ggsave(here::here("2_r_scripts/figure_s1.png"), plot = fem_a, width = 6, height = 5, units = "in", device = "png")
+            ggsave(here::here("2_r_scripts/figure_s1b.pdf"), plot = fem_a, width = 6, height = 5, units = "in", device = "pdf")
         
         
         
