@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/243045083.svg)](https://zenodo.org/badge/latestdoi/243045083)
+
 # Purpose
 
 This repository contains the complete set of code and data required to reproduce all of the figures and analyses included in both the main text and supplementary material for Taff et al. *Individual variation in natural or manipulated corticosterone does not covary with circulating glucose in a wild bird.*
